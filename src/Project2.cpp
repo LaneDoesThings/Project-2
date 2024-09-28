@@ -124,9 +124,9 @@ void keyboard_CB(unsigned char key, int x, int y) {
     move = true;
   }
 
-  if (key == 'k') {
+  if (key == 'k' && boxX - (bottom_Box_Size / 2) > 0) {
     boxX -= 3;
-  } else if (key == 'l') {
+  } else if (key == 'l' && boxX + (bottom_Box_Size / 2) < canvas_Width) {
     boxX += 3;
   }
 }
