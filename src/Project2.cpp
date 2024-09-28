@@ -9,7 +9,6 @@
 #define canvas_Height 600
 #define framerate 60.0
 #define z_Plane -1 // Specified in assignment documentation
-#define box_Center 270
 #define bottom_Box_Size 120
 #define middle_Box_Size 100
 #define top_Box_Size 80
@@ -19,6 +18,7 @@
 
 float msec = 0;
 bool move = false;
+int boxX = 270;
 int snowflakeHalfSize = snowflake_Size / 2;
 int snowflakeX = ((snowflake_Size / 2) + 75);
 int snowflakeY = (canvas_Height - 1) - (snowflake_Size / 2);
@@ -36,9 +36,8 @@ void snowflake() {
   if math is allowed.
   */
 
-  glColor3f(0.8,0.9,0.0);
+  glColor3f(0.8, 0.9, 0.0);
   glBegin(GL_LINES);
-
 
   // Horizontal Line
   glVertex3d(snowflakeX - snowflakeHalfSize, snowflakeY, z_Plane);
@@ -70,8 +69,8 @@ void display_CB() {
 
   // Bottom Box
   int bottomBoxMid = bottom_Box_Size / 2;
-  int bottomboxLeft = box_Center - bottomBoxMid;
-  int bottomBoxRight = box_Center + bottomBoxMid;
+  int bottomboxLeft = boxX - bottomBoxMid;
+  int bottomBoxRight = boxX + bottomBoxMid;
   glVertex3i(bottomboxLeft, 1, z_Plane);
   glVertex3i(bottomBoxRight, 1, z_Plane);
   glVertex3i(bottomBoxRight, 1, z_Plane);
@@ -83,8 +82,8 @@ void display_CB() {
 
   // Middle Box
   int middleBoxMid = middle_Box_Size / 2;
-  int middleBoxleft = box_Center - middleBoxMid;
-  int middleBoxRight = box_Center + middleBoxMid;
+  int middleBoxleft = boxX - middleBoxMid;
+  int middleBoxRight = boxX + middleBoxMid;
   int middleBoxBottom = bottom_Box_Size + 1;
   int middleBoxTop = bottom_Box_Size + middle_Box_Size;
   glColor3f(1.0, 1.0, 1.0);
@@ -99,8 +98,8 @@ void display_CB() {
 
   // Top Box
   int topBoxMid = top_Box_Size / 2;
-  int topBoxLeft = box_Center - topBoxMid;
-  int topBoxRight = box_Center + topBoxMid;
+  int topBoxLeft = boxX - topBoxMid;
+  int topBoxRight = boxX + topBoxMid;
   int topBoxBottom = bottom_Box_Size + middle_Box_Size + 1;
   int topBoxTop = bottom_Box_Size + middle_Box_Size + top_Box_Size;
   glColor3f(1.0, 1.0, 1.0);
@@ -121,9 +120,15 @@ void display_CB() {
 
 // Callback that fires whenever an ascii key is pressed
 void keyboard_CB(unsigned char key, int x, int y) {
-  move = true;
-  
+  if (move == false) {
+    move = true;
+  }
 
+  if (key == 'k') {
+    boxX -= 3;
+  } else if (key == 'l') {
+    boxX += 3;
+  }
 }
 
 // Callback that fires after set time
