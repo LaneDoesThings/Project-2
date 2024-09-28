@@ -1,9 +1,9 @@
-all: project
+all: project.bin
 
-project: Project2.o
+project.bin: Project2.o
 
 %.o: %.cpp
-	g++ $< -o ../bin/project -Wall -lGL -lGLU -lglut -lGLEW
+	g++ $< -o ../bin/project.bin -Wall -lGL -lGLU -lglut -lGLEW
 
-start: project
-	../bin/project
+start: project.bin
+	../bin/project.bin
