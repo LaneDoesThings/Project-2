@@ -16,26 +16,28 @@
 #define snowflake_Angle 45
 #define toRadians(degrees) (degrees * M_PI / 180.0)
 
+void timer_CB(int id);
+
 float msec = 0;
 bool move = false;
 int boxX = 270;
+int boxBoundingLeft = boxX - (bottom_Box_Size / 2);
+int boxBoundingRight = boxX + (bottom_Box_Size / 2);
+int boxBoundingTop = bottom_Box_Size + middle_Box_Size + top_Box_Size;
 int snowflakeHalfSize = snowflake_Size / 2;
 int snowflakeX = ((snowflake_Size / 2) + 75);
 int snowflakeY = (canvas_Height - 1) - (snowflake_Size / 2);
+int snowflakeBoundingLeft = snowflakeX - snowflakeHalfSize;
+int snowflakeBoundingRight = snowflakeX + snowflakeHalfSize;
+int snowflakeBoundingBottom = snowflakeY - snowflakeHalfSize;
 double diagonalX = snowflakeHalfSize * cos(toRadians(snowflake_Angle));
 double diagonalY = snowflakeHalfSize * sin(toRadians(snowflake_Angle));
+unsigned char* hitText = (unsigned char*)"Ouch, Cold";
+bool hit = false;
+
 
 // Draws snowflakes where the center point is at snowflakeX, snowflakeY
 void snowflake() {
-
-  /*
-  A note on the magic numbers 21.65063509 and 12.5.
-  These are the X and Y coords needed for a line of length 50
-  with a 60° angle. I would do this programmatically i.e (snowflake_Size / 2 *
-  sin\cos(60°)) but the program assignment disallowed libraries and I don't know
-  if math is allowed.
-  */
-
   glColor3f(0.8, 0.9, 0.0);
   glBegin(GL_LINES);
 
@@ -58,12 +60,8 @@ void snowflake() {
   glEnd();
 }
 
-// Callback for the display event
-// Handles drawing things to screen and refreshing screen
-void display_CB() {
-  glClearColor(0.0, 0.0, 0.2, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT);
-
+void snowman() 
+{
   glColor3f(1.0, 1.0, 1.0);
   glBegin(GL_LINES);
 
@@ -113,8 +111,49 @@ void display_CB() {
   glVertex3i(topBoxLeft, topBoxBottom, z_Plane);
 
   glEnd();
+}
 
+void collision()
+{
+  snowflakeBoundingLeft = snowflakeX - snowflakeHalfSize;
+  snowflakeBoundingRight = snowflakeX + snowflakeHalfSize;
+  snowflakeBoundingBottom = snowflakeY - snowflakeHalfSize;
+
+  boxBoundingLeft = boxX - (bottom_Box_Size / 2);
+  boxBoundingRight = boxX + (bottom_Box_Size / 2);
+  boxBoundingTop = bottom_Box_Size + middle_Box_Size + top_Box_Size;
+
+  if(snowflakeBoundingBottom < boxBoundingTop && snowflakeBoundingRight > boxBoundingLeft && snowflakeBoundingLeft < boxBoundingRight && !hit)
+  {
+    hit = true;
+    snowflakeY = (canvas_Height - 1) - (snowflake_Size / 2);
+    glutTimerFunc(1200, timer_CB, 1);
+  }
+}
+
+// Callback for the display event
+// Handles drawing things to screen and refreshing screen
+void display_CB() {
+  glClearColor(0.0, 0.0, 0.2, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  if(hit)
+  {
+    glColor3f(1.0, 0.0, 0.0);
+    glRasterPos2i(boxX - 40, bottom_Box_Size + (middle_Box_Size / 2));
+    glutBitmapString(GLUT_BITMAP_8_BY_13, (const unsigned char*)"Ouch, Cold");
+
+  }
+  if(!move)
+  {    
+    glColor3f(1.0, 1.0, 1.0);
+    glRasterPos2i((canvas_Width / 2) - 100, canvas_Height - 20);
+    glutBitmapString(GLUT_BITMAP_8_BY_13, (const unsigned char*)"Press any key to Start");
+  }
+
+  snowman(); // Draw the snowman
   snowflake(); // Draw the snowflake
+  collision(); // Check for collision between the snowman and snowflake
   glFlush();
 }
 
@@ -133,6 +172,8 @@ void keyboard_CB(unsigned char key, int x, int y) {
 
 // Callback that fires after set time
 void timer_CB(int id) {
+  if(id == 0)
+  {
   msec += 1000.0 / framerate;
 
   // If it has been 20 miliseconds and the keyboard has been pressed
@@ -148,6 +189,11 @@ void timer_CB(int id) {
 
   // Run the timer again
   glutTimerFunc(1000 / framerate, timer_CB, 0);
+  }
+  if(id == 1)
+  {
+    hit = false;
+  }
   glutPostRedisplay();
 }
 
