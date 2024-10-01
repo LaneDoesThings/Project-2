@@ -7,3 +7,6 @@ project.bin: Project2.o
 
 start: project.bin
 	../bin/project.bin
+
+format:
+	clang-format -i *.cpp

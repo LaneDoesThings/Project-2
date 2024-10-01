@@ -1,9 +1,9 @@
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+#include "OpenGL445Setup-aug24.h"
 #include <iostream>
 #include <math.h>
-#include "OpenGL445Setup-aug24.h"
 
 #define canvas_Width 600
 #define canvas_Height 600
@@ -15,6 +15,8 @@
 #define snowflake_Size 50
 #define snowflake_Angle 45
 #define toRadians(degrees) (degrees * M_PI / 180.0)
+#define hitList 1
+#define startList 2
 
 void timer_CB(int id);
 
@@ -32,9 +34,7 @@ int snowflakeBoundingRight = snowflakeX + snowflakeHalfSize;
 int snowflakeBoundingBottom = snowflakeY - snowflakeHalfSize;
 double diagonalX = snowflakeHalfSize * cos(toRadians(snowflake_Angle));
 double diagonalY = snowflakeHalfSize * sin(toRadians(snowflake_Angle));
-unsigned char* hitText = (unsigned char*)"Ouch, Cold";
 bool hit = false;
-
 
 // Draws snowflakes where the center point is at snowflakeX, snowflakeY
 void snowflake() {
@@ -60,8 +60,7 @@ void snowflake() {
   glEnd();
 }
 
-void snowman() 
-{
+void snowman() {
   glColor3f(1.0, 1.0, 1.0);
   glBegin(GL_LINES);
 
@@ -113,8 +112,7 @@ void snowman()
   glEnd();
 }
 
-void collision()
-{
+void collision() {
   snowflakeBoundingLeft = snowflakeX - snowflakeHalfSize;
   snowflakeBoundingRight = snowflakeX + snowflakeHalfSize;
   snowflakeBoundingBottom = snowflakeY - snowflakeHalfSize;
@@ -123,10 +121,10 @@ void collision()
   boxBoundingRight = boxX + (bottom_Box_Size / 2);
   boxBoundingTop = bottom_Box_Size + middle_Box_Size + top_Box_Size;
 
-  if(snowflakeBoundingBottom < boxBoundingTop && snowflakeBoundingRight > boxBoundingLeft && snowflakeBoundingLeft < boxBoundingRight && !hit)
-  {
+  if (snowflakeBoundingBottom < boxBoundingTop &&
+      snowflakeBoundingRight > boxBoundingLeft &&
+      snowflakeBoundingLeft < boxBoundingRight && !hit) {
     hit = true;
-    snowflakeY = (canvas_Height - 1) - (snowflake_Size / 2);
     glutTimerFunc(1200, timer_CB, 1);
   }
 }
@@ -137,21 +135,16 @@ void display_CB() {
   glClearColor(0.0, 0.0, 0.2, 1.0);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  if(hit)
-  {
+  if (hit) {
     glColor3f(1.0, 0.0, 0.0);
     glRasterPos2i(boxX - 40, bottom_Box_Size + (middle_Box_Size / 2));
-    glutBitmapString(GLUT_BITMAP_8_BY_13, (const unsigned char*)"Ouch, Cold");
-
+    glCallList(hitList);
   }
-  if(!move)
-  {    
-    glColor3f(1.0, 1.0, 1.0);
-    glRasterPos2i((canvas_Width / 2) - 100, canvas_Height - 20);
-    glutBitmapString(GLUT_BITMAP_8_BY_13, (const unsigned char*)"Press any key to Start");
+  if (!move) {
+    glCallList(startList);
   }
 
-  snowman(); // Draw the snowman
+  snowman();   // Draw the snowman
   snowflake(); // Draw the snowflake
   collision(); // Check for collision between the snowman and snowflake
   glFlush();
@@ -172,26 +165,24 @@ void keyboard_CB(unsigned char key, int x, int y) {
 
 // Callback that fires after set time
 void timer_CB(int id) {
-  if(id == 0)
-  {
-  msec += 1000.0 / framerate;
+  if (id == 0) {
+    msec += 1000.0 / framerate;
 
-  // If it has been 20 miliseconds and the keyboard has been pressed
-  // Move the snowflake
-  if (msec >= 20 && move) {
-    // We have hit the bottom of the screen
-    if ((snowflakeY - snowflakeHalfSize) <= 0) {
-      snowflakeY = (canvas_Height - 1) - (snowflake_Size / 2);
+    // If it has been 20 miliseconds and the keyboard has been pressed
+    // Move the snowflake
+    if (msec >= 20 && move) {
+      // We have hit the bottom of the screen
+      if ((snowflakeY - snowflakeHalfSize) <= 0) {
+        snowflakeY = (canvas_Height - 1) - (snowflake_Size / 2);
+      }
+      msec = 0;
+      snowflakeY -= 4;
     }
-    msec = 0;
-    snowflakeY -= 4;
-  }
 
-  // Run the timer again
-  glutTimerFunc(1000 / framerate, timer_CB, 0);
+    // Run the timer again
+    glutTimerFunc(1000 / framerate, timer_CB, 0);
   }
-  if(id == 1)
-  {
+  if (id == 1) {
     hit = false;
   }
   glutPostRedisplay();
@@ -201,6 +192,19 @@ int main(int argc, char *argv[]) {
   char canvas_Name[] = "Project 2 - Lane Wright";
   glutInit(&argc, argv);
   my_setup(canvas_Width, canvas_Height, canvas_Name);
+
+  // Display list for when the snowman gets hit
+  glNewList(hitList, GL_COMPILE);
+  glutBitmapString(GLUT_BITMAP_8_BY_13, (const unsigned char *)"Ouch, Cold");
+  glEndList();
+
+  // Display list for beginning
+  glNewList(startList, GL_COMPILE);
+  glColor3f(1.0, 1.0, 1.0);
+  glRasterPos2i((canvas_Width / 2) - 100, canvas_Height - 20);
+  glutBitmapString(GLUT_BITMAP_8_BY_13,
+                   (const unsigned char *)"Press any key to Start");
+  glEndList();
 
   // Set up event handlers
   glutDisplayFunc(display_CB);
