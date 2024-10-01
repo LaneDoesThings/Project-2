@@ -1,3 +1,19 @@
+/*
+Graphics Pgm 2 for Lane Wright
+
+The snowflake is animated using the timer_CB function that upadtes its global
+position snowflakeY and calls glutPostRedisplay.
+
+The snowman is animated using the keyboard_CB that updates its global posision
+boxX whenever the keys 'k' or 'l' are pressed.
+
+Text is generated using a bitmap and put in a dispay list in main.
+
+The display is handled using display_CB and updates the position of the
+snowflake and snowman, checks for collisions, and calls the text display list.
+
+
+*/
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -15,13 +31,14 @@
 #define snowflake_Size 50
 #define snowflake_Angle 45
 #define toRadians(degrees) (degrees * M_PI / 180.0)
-#define hitList 1
-#define startList 2
+#define hitList 1 // id for the display list when the snowman gets hit
+#define startList                                                              \
+  2 // id for the display list that shows the text at the beginning
 
 void timer_CB(int id);
 
-float msec = 0;
 bool move = false;
+bool hit = false;
 int boxX = 270;
 int boxBoundingLeft = boxX - (bottom_Box_Size / 2);
 int boxBoundingRight = boxX + (bottom_Box_Size / 2);
@@ -32,14 +49,20 @@ int snowflakeY = (canvas_Height - 1) - (snowflake_Size / 2);
 int snowflakeBoundingLeft = snowflakeX - snowflakeHalfSize;
 int snowflakeBoundingRight = snowflakeX + snowflakeHalfSize;
 int snowflakeBoundingBottom = snowflakeY - snowflakeHalfSize;
+float msec = 0;
 double diagonalX = snowflakeHalfSize * cos(toRadians(snowflake_Angle));
 double diagonalY = snowflakeHalfSize * sin(toRadians(snowflake_Angle));
-bool hit = false;
 
-// Draws snowflakes where the center point is at snowflakeX, snowflakeY
+// Draws snowflake where the center point is at snowflakeX, snowflakeY
 void snowflake() {
   glColor3f(0.8, 0.9, 0.0);
   glBegin(GL_LINES);
+
+  // All of the following lines are drawn by going to the snowflake's center
+  // point and adding a vertex half of the line width to the "left" and then to
+  // the "right" For example with line width 50 and center point 30 the first
+  // vertex is at 30-25=5 and the second vertex is at 30+25 = 55 which creates a
+  // line centered at 30 that is 50 units long.
 
   // Horizontal Line
   glVertex3d(snowflakeX - snowflakeHalfSize, snowflakeY, z_Plane);
@@ -113,19 +136,23 @@ void snowman() {
 }
 
 void collision() {
+  // Create a "box" around the snowflake that encapsulates it
   snowflakeBoundingLeft = snowflakeX - snowflakeHalfSize;
   snowflakeBoundingRight = snowflakeX + snowflakeHalfSize;
   snowflakeBoundingBottom = snowflakeY - snowflakeHalfSize;
 
+  // Create a "box" around the snowman that encapsulates it
   boxBoundingLeft = boxX - (bottom_Box_Size / 2);
   boxBoundingRight = boxX + (bottom_Box_Size / 2);
   boxBoundingTop = bottom_Box_Size + middle_Box_Size + top_Box_Size;
 
+  // If the snowflake's bounding box is inside the snowman's bounding box they
+  // are intersecting
   if (snowflakeBoundingBottom < boxBoundingTop &&
       snowflakeBoundingRight > boxBoundingLeft &&
       snowflakeBoundingLeft < boxBoundingRight && !hit) {
     hit = true;
-    glutTimerFunc(1200, timer_CB, 1);
+    glutTimerFunc(1200, timer_CB, 1); // Text timer
   }
 }
 
@@ -156,15 +183,21 @@ void keyboard_CB(unsigned char key, int x, int y) {
     move = true;
   }
 
+  // If 'k' is pressed and the snowman isn't touching the left side of the
+  // canvas
   if (key == 'k' && boxX - (bottom_Box_Size / 2) > 0) {
     boxX -= 3;
-  } else if (key == 'l' && boxX + (bottom_Box_Size / 2) < canvas_Width) {
+  }
+  // If 'l' is pressed and the snowman isn't touching the right side of the
+  // canvas
+  else if (key == 'l' && boxX + (bottom_Box_Size / 2) < canvas_Width) {
     boxX += 3;
   }
 }
 
 // Callback that fires after set time
 void timer_CB(int id) {
+  // Framerate timer
   if (id == 0) {
     msec += 1000.0 / framerate;
 
@@ -182,6 +215,7 @@ void timer_CB(int id) {
     // Run the timer again
     glutTimerFunc(1000 / framerate, timer_CB, 0);
   }
+  // Hit text timer
   if (id == 1) {
     hit = false;
   }
