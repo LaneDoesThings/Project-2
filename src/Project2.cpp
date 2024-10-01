@@ -12,7 +12,6 @@ Text is generated using a bitmap and put in a dispay list in main.
 The display is handled using display_CB and updates the position of the
 snowflake and snowman, checks for collisions, and calls the text display list.
 
-
 */
 
 #include <GL/glew.h>
